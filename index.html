@@ -27,10 +27,15 @@
   <div class="container pt2">
     <div class="mb3">
       <div>
-        <h1>Upload Firmware:</h1> <input type="file" class="" value="Upload Firmware" />
-      </div>
-      <div>
-        <button class="button button-outline">Upload</button>
+        <h1>Upload Firmware:</h1>
+        <form method="post" enctype="multipart/form-data" action="/firmware" id="upload-form">
+          <div>
+            <input type="file" id="file-input" value="firmware" />
+          <div>
+          <div>
+            <button class="button button-outline">Upload</button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -55,20 +60,6 @@
     </div>
   </div>
 
-  <script>
-    var payloadSerialOut = document.getElementById('payload-serial-output')
-    var modemSerialOut = document.getElementById('modem-serial-output')
-    var payloadPre = document.getElementById('payload-pre');
-    var modemPre = document.getElementById('modem-pre');
-    const socket = io()
-    socket.on('payload-log', log => {
-      payloadSerialOut.innerHTML += log;
-      payloadPre.scrollTop = payloadSerialOut.scrollHeight;
-    });
-    socket.on('modem-log', log => {
-      modemSerialOut.innerHTML += log;
-      modemPre.scrollTop = modemSerialOut.scrollHeight;
-    });
-  </script>
+  <script src="index.js"></script>
 </body>
 </html>
