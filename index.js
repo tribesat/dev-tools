@@ -7,6 +7,8 @@ var payloadPre = document.getElementById('payload-pre');
 var modemPre = document.getElementById('modem-pre');
 var uploadForm = document.getElementById('upload-form');
 var fileInput = document.getElementById('file-input');
+var payloadRadio = document.getElementById('payload-radio');
+var modemRadio = document.getElementById('modem-radio');
 
 const socket = io()
 
@@ -24,6 +26,7 @@ uploadForm.onsubmit = e => {
   e.preventDefault();
   var data = new FormData();
   data.append('firmware', fileInput.files[0]);
+  data.append('device', payloadRadio.checked ? 'payload' : 'modem');
   fetch('/firmware', {
     method: 'POST',
     body: data,

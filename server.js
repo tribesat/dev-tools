@@ -15,6 +15,8 @@ const multer = require('multer');
 const upload = multer({ dest: '/tmp/' });
 
 const PORT = 5000;
+const PAYLOAD = 'PAYLOAD';
+const MODEM = 'MODEM';
 const PAYLOAD_PORT = process.argv[2];
 const MODEM_PORT = process.argv[3];
 
@@ -30,7 +32,8 @@ app.use(express.static('.'));
  */
 app.post('/firmware', upload.single('firmware'), (req, res) => {
   const { filename } = req.file;
-  flashFirmware(path.join('/tmp', filename))
+  const { device } = req.body;
+  flashFirmware(path.join('/tmp', filename), device)
     .then(({ stdout, stderr }) => {
       res.json({ stdout, stderr });
     })
@@ -50,7 +53,7 @@ http.listen(PORT, function(){
 // serial comms
 
 let payloadPort = new SerialPort(PAYLOAD_PORT, { baudRate: 57600, });
-const modemPort = new SerialPort(MODEM_PORT, { baudRate: 57600, });
+let modemPort = new SerialPort(MODEM_PORT, { baudRate: 57600, });
 
 payloadPort.on('data', data => {
   io.sockets.emit('payload-log', data.toString());
@@ -61,42 +64,38 @@ modemPort.on('data', data => {
 });
 
 // flashing
-function flashFirmware(filename, cb) {
+function flashFirmware(filename, device) {
   return new Promise((resolve, reject) => {
-    // close the serial connection
     payloadPort.close(err => {
       if (err)
         return reject(err);
-      console.log('port closed');
-    });
 
-    const cmd = `avrdude -vv -patmega328p -carduino -P${PAYLOAD_PORT} -b115200 -D ` +
-      `-Uflash:w:/var/folders/ph/nzyskt3x6h7fvz00ry339k0c0000gn/T/arduino_build_771952/Payload.ino.hex:i`;
+      filename = '/var/folders/ph/nzyskt3x6h7fvz00ry339k0c0000gn/T/arduino_build_771952/Payload.ino.hex'
 
-    /*
-    const cmd = `avrdude ` +
-      `-vvv ` +
-      `-patmega328p ` +
-      `-carduino ` +
-      `-P${PAYLOAD_PORT} ` +
-      `-b115200 ` +
-      `-D ` +
-      `-Uflash:w:${filename}:i`;
-    */
+      const cmd = `avrdude ` +
+        `-vvv ` +
+        `-patmega328p ` +
+        `-carduino ` +
+        `-P${device === PAYLOAD ? PAYLOAD_PORT : MODEM_PORT} ` +
+        `-b115200 ` +
+        `-D ` +
+        `-Uflash:w:${filename}:i`;
 
-    exec(cmd, (err, stdout, stderr) => {
-      if (err) {
-        return reject(err);
-      }
-      console.log(stdout);
-      console.log(stderr);
+      exec(cmd, (err, stdout, stderr) => {
+        if (err) {
+          return reject(err);
+        }
+        console.log(stdout);
+        console.log(stderr);
 
-      // reopen the serial connection after flashing
-      payloadPort = new SerialPort(PAYLOAD_PORT, { baudRate: 57600, });
-      payloadPort.on('data', data => {
-        io.sockets.emit('payload-log', data.toString());
+        // reopen the serial connection after flashing
+        payloadPort = new SerialPort(PAYLOAD_PORT, { baudRate: 57600, });
+        payloadPort.on('data', data => {
+          io.sockets.emit('payload-log', data.toString());
+        });
+        resolve({ stdout, stderr });
       });
-      resolve({ stdout, stderr });
     });
+
   });
 }

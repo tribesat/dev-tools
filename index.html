@@ -27,11 +27,19 @@
   <div class="container pt2">
     <div class="mb3">
       <div>
-        <h1>Upload Firmware:</h1>
+        <h1>Upload Firmware</h1>
         <form method="post" enctype="multipart/form-data" action="/firmware" id="upload-form">
           <div>
             <input type="file" id="file-input" value="firmware" />
           <div>
+          <div>
+            <div>
+              <input id="payload-radio" name="device" type="radio" value="payload" checked /> payload
+            </div>
+            <div>
+              <input id="modem-radio" name="device" type="radio" value="modem" /> modem
+            </div>
+          </div>
           <div>
             <button class="button button-outline">Upload</button>
           </div>

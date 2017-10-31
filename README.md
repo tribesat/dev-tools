@@ -20,8 +20,3 @@ node server.js /path/to/payload/usb /path/to/modem/usb
 
 
 ![demo](demo.gif)
-
-
-### Todo
-
-- implement flashing firmware uploads
